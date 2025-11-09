@@ -42,7 +42,7 @@ func LoadReader(fd io.Reader) (*Config, error) {
 }
 
 // Load loads the configuration from the default paths.
-func Load(workingDir, dataDir string, debug bool) (*Config, error) {
+func Load(workingDir, dataDir string, debug, research bool) (*Config, error) {
 	configPaths := lookupConfigs(workingDir)
 
 	cfg, err := loadFromConfigPaths(configPaths)
@@ -56,6 +56,13 @@ func Load(workingDir, dataDir string, debug bool) (*Config, error) {
 
 	if debug {
 		cfg.Options.Debug = true
+	}
+
+	// Set mode based on research flag
+	if research {
+		cfg.Options.Mode = "research"
+	} else if cfg.Options.Mode == "" {
+		cfg.Options.Mode = "coder" // Default mode
 	}
 
 	// Setup logs

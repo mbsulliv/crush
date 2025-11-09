@@ -165,7 +165,7 @@ func coderAgent(r *recorder.Recorder, env env, large, small fantasy.LanguageMode
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := config.Init(env.workingDir, "", false)
+	cfg, err := config.Init(env.workingDir, "", false, false)
 	if err != nil {
 		return nil, err
 	}

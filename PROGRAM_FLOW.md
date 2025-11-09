@@ -47,9 +47,9 @@ This document traces the complete execution flow from startup to tool execution 
 │ internal/cmd/root.go:155-197                                  │
 │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│
 │ func setupApp(cmd) → *app.App                                 │
-│   ├─ Parse flags: -d (debug), -y (yolo), -D (data-dir)        │
+│   ├─ Parse flags: -d (debug), -y (yolo), -D (data-dir), -r (research) │
 │   ├─ ResolveCwd()                                             │
-│   ├─ config.Init(cwd, dataDir, debug) ────────────────────┐   │
+│   ├─ config.Init(cwd, dataDir, debug, research) ──────────┐   │
 │   ├─ Create .crush directory                              │   │
 │   ├─ db.Connect(ctx, dataDir) ← SQLite + migrations       │   │
 │   ├─ app.New(ctx, conn, cfg) ─────────────────────────────┼─┐ │

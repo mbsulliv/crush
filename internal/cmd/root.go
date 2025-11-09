@@ -35,6 +35,7 @@ func init() {
 
 	rootCmd.Flags().BoolP("help", "h", false, "Help")
 	rootCmd.Flags().BoolP("yolo", "y", false, "Automatically accept all permissions (dangerous mode)")
+	rootCmd.Flags().BoolP("research", "r", false, "Enable research mode for working with documents and non-code files")
 
 	rootCmd.AddCommand(
 		runCmd,
@@ -47,10 +48,13 @@ func init() {
 
 var rootCmd = &cobra.Command{
 	Use:   "crush",
-	Short: "Terminal-based AI assistant for software development",
-	Long: `Crush is a powerful terminal-based AI assistant that helps with software development tasks.
+	Short: "Terminal-based AI assistant for software development and research",
+	Long: `Crush is a powerful terminal-based AI assistant that helps with software development and research tasks.
 It provides an interactive chat interface with AI capabilities, code analysis, and LSP integration
-to assist developers in writing, debugging, and understanding code directly from the terminal.`,
+to assist developers in writing, debugging, and understanding code directly from the terminal.
+
+Research mode enables document processing, academic research, and work with non-code files including
+PDFs, text documents, and other research materials.`,
 	Example: `
 # Run in interactive mode
 crush
@@ -63,6 +67,12 @@ crush -d -c /path/to/project
 
 # Run with custom data directory
 crush -D /path/to/custom/.crush
+
+# Run in research mode for document analysis
+crush -r
+
+# Run in research mode with a specific directory
+crush -r -c /path/to/research/papers
 
 # Print version
 crush -v
@@ -155,6 +165,7 @@ func Execute() {
 func setupApp(cmd *cobra.Command) (*app.App, error) {
 	debug, _ := cmd.Flags().GetBool("debug")
 	yolo, _ := cmd.Flags().GetBool("yolo")
+	research, _ := cmd.Flags().GetBool("research")
 	dataDir, _ := cmd.Flags().GetString("data-dir")
 	ctx := cmd.Context()
 
@@ -163,7 +174,7 @@ func setupApp(cmd *cobra.Command) (*app.App, error) {
 		return nil, err
 	}
 
-	cfg, err := config.Init(cwd, dataDir, debug)
+	cfg, err := config.Init(cwd, dataDir, debug, research)
 	if err != nil {
 		return nil, err
 	}

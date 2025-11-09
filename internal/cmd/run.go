@@ -12,10 +12,14 @@ var runCmd = &cobra.Command{
 	Use:   "run [prompt...]",
 	Short: "Run a single non-interactive prompt",
 	Long: `Run a single prompt in non-interactive mode and exit.
-The prompt can be provided as arguments or piped from stdin.`,
+The prompt can be provided as arguments or piped from stdin.
+Can be combined with research mode (-r) for document analysis.`,
 	Example: `
 # Run a simple prompt
 crush run Explain the use of context in Go
+
+# Run in research mode
+crush -r run "Summarize the research papers in this directory"
 
 # Pipe input from stdin
 echo "What is this code doing?" | crush run
