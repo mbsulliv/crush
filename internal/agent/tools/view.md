@@ -13,10 +13,11 @@ Reads and displays file contents with line numbers for examining code, logs, or 
 - Handles large files by limiting lines read
 - Auto-truncates very long lines for display
 - Suggests similar filenames when file not found
+- Can extract PDF, DOC/DOCX, and MarkDown content
 </features>
 
 <limitations>
-- Max file size: 250KB
+- Max file size: 500KB
 - Default limit: 2000 lines
 - Lines >2000 chars truncated
 - Cannot display binary files/images (identifies them)
