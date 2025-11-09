@@ -51,3 +51,13 @@ manpages/
 completions/
 !internal/tui/components/completions/
 .prettierignore
+
+# idutils
+GPATH
+GRTAGS
+GTAGS
+ID
+
+# Claude Code
+CLAUDE.md
+.claude/
