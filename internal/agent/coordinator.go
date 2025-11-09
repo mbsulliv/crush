@@ -87,13 +87,32 @@ func NewCoordinator(
 		agents:      make(map[string]SessionAgent),
 	}
 
-	agentCfg, ok := cfg.Agents[config.AgentCoder]
-	if !ok {
-		return nil, errors.New("coder agent not configured")
+	// Select agent and prompt based on mode
+	var agentName string
+	var promptFn func(...prompt.Option) (*prompt.Prompt, error)
+
+	switch cfg.Options.Mode {
+	case config.AgentResearch:
+		agentName = config.AgentCoder // Use coder agent config for now
+		promptFn = researchPrompt
+	case config.AgentTask:
+		agentName = config.AgentTask
+		promptFn = taskPrompt
+	default:
+		agentName = config.AgentCoder
+		promptFn = coderPrompt
 	}
 
-	// TODO: make this dynamic when we support multiple agents
-	prompt, err := coderPrompt(prompt.WithWorkingDir(c.cfg.WorkingDir()))
+	agentCfg, ok := cfg.Agents[agentName]
+	if !ok {
+		// Fallback to coder agent if specific agent not configured
+		agentCfg, ok = cfg.Agents[config.AgentCoder]
+		if !ok {
+			return nil, errors.New("coder agent not configured")
+		}
+	}
+
+	prompt, err := promptFn(prompt.WithWorkingDir(c.cfg.WorkingDir()))
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +122,7 @@ func NewCoordinator(
 		return nil, err
 	}
 	c.currentAgent = agent
-	c.agents[config.AgentCoder] = agent
+	c.agents[agentName] = agent
 	return c, nil
 }
 

@@ -1,8 +1,4 @@
 {
-  "$schema": "https://charm.land/crush.json",
-  "lsp": {
-    "gopls": {}
-  },
   "options": {
     "mode": "research",
     "include_file_patterns": ["*.txt", "*.pdf", "*.docx", "*.doc", "*.log", "*.md", "*.csv"],

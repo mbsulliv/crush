@@ -39,6 +39,10 @@ var defaultContextPaths = []string{
 	"AGENTS.md",
 	"agents.md",
 	"Agents.md",
+	"README.md",
+	"RESEARCH.md",
+	"NOTES.md",
+	"METHODOLOGY.md",
 }
 
 type SelectedModelType string
@@ -49,8 +53,9 @@ const (
 )
 
 const (
-	AgentCoder string = "coder"
-	AgentTask  string = "task"
+	AgentCoder    string = "coder"
+	AgentTask     string = "task"
+	AgentResearch string = "research"
 )
 
 type SelectedModel struct {
@@ -182,6 +187,13 @@ type Options struct {
 	DisableProviderAutoUpdate bool         `json:"disable_provider_auto_update,omitempty" jsonschema:"description=Disable providers auto-update,default=false"`
 	Attribution               *Attribution `json:"attribution,omitempty" jsonschema:"description=Attribution settings for generated content"`
 	DisableMetrics            bool         `json:"disable_metrics,omitempty" jsonschema:"description=Disable sending metrics,default=false"`
+
+	// Research mode configuration
+	Mode                  string   `json:"mode,omitempty" jsonschema:"description=Operating mode for Crush,enum=coder,enum=research,default=coder"`
+	IncludeFilePatterns   []string `json:"include_file_patterns,omitempty" jsonschema:"description=File patterns to include in research mode,example=*.txt,example=*.pdf,example=*.docx"`
+	ExcludeFilePatterns   []string `json:"exclude_file_patterns,omitempty" jsonschema:"description=File patterns to exclude in research mode"`
+	EnableDocumentOCR     bool     `json:"enable_document_ocr,omitempty" jsonschema:"description=Enable OCR for images in documents,default=false"`
+	MaxDocumentSizeMB     int      `json:"max_document_size_mb,omitempty" jsonschema:"description=Maximum document size in MB for processing,default=10,example=10,example=20,example=50"`
 }
 
 type MCPs map[string]MCPConfig

@@ -30,9 +30,11 @@ require (
 	github.com/charmbracelet/x/term v0.2.1
 	github.com/denisbrodbeck/machineid v1.0.1
 	github.com/disintegration/imageorient v0.0.0-20180920195336-8147d86e83ec
+	github.com/fumiama/go-docx v0.0.0-20250506085032-0c30fd09304b
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.13.0
 	github.com/joho/godotenv v1.5.1
+	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/modelcontextprotocol/go-sdk v1.0.0
 	github.com/muesli/termenv v0.16.0
@@ -99,6 +101,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/fumiama/imgsz v0.0.2 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect

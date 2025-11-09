@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"charm.land/fantasy"
+	"github.com/charmbracelet/crush/internal/config"
 	"github.com/charmbracelet/crush/internal/csync"
 	"github.com/charmbracelet/crush/internal/filepathext"
 	"github.com/charmbracelet/crush/internal/lsp"
@@ -147,21 +148,72 @@ func NewViewTool(lspClients *csync.Map[string, *lsp.Client], permissions permiss
 				params.Limit = DefaultReadLimit
 			}
 
-			// Check if it's an image file
-			isImage, imageType := isImageFile(filePath)
-			// TODO: handle images
-			if isImage {
-				return fantasy.NewTextErrorResponse(fmt.Sprintf("This is an image file of type: %s\n", imageType)), nil
+			// Check if it's a document file (PDF, Word, etc.)
+			var content string
+			var lineCount int
+			var isExtractedDocument bool
+
+			if isDocumentFile(filePath) {
+				// Use document reader
+				readerFunc, readerErr := getDocumentReader(filePath)
+				if readerErr != nil {
+					// Fall back to normal text reading
+					var err error
+					content, lineCount, err = readTextFile(filePath, params.Offset, params.Limit)
+					if err != nil {
+						return fantasy.ToolResponse{}, fmt.Errorf("error reading file: %w", err)
+					}
+				} else {
+					// Extract text from document
+					extractedContent, extractErr := readerFunc(filePath)
+					if extractErr != nil {
+						return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to extract text from document: %v", extractErr)), nil
+					}
+					content = extractedContent
+					lineCount = len(strings.Split(content, "\n"))
+					isExtractedDocument = true
+
+					// Apply offset and limit to extracted content if needed
+					if params.Offset > 0 || params.Limit > 0 {
+						lines := strings.Split(content, "\n")
+						start := params.Offset
+						end := len(lines)
+						if params.Limit > 0 && start+params.Limit < end {
+							end = start + params.Limit
+						}
+						if start < len(lines) {
+							content = strings.Join(lines[start:end], "\n")
+						} else {
+							content = ""
+						}
+					}
+				}
+			} else {
+				// Check if it's an image file
+				isImage, imageType := isImageFile(filePath)
+				// TODO: handle images with OCR if enabled
+				if isImage {
+					cfg := config.Get()
+					if cfg.Options.EnableDocumentOCR {
+						return fantasy.NewTextErrorResponse(fmt.Sprintf("OCR support for image files (%s) is not yet implemented", imageType)), nil
+					}
+					return fantasy.NewTextErrorResponse(fmt.Sprintf("This is an image file of type: %s\n", imageType)), nil
+				}
+
+				// Read as normal text file
+				var err error
+				content, lineCount, err = readTextFile(filePath, params.Offset, params.Limit)
+				if err != nil {
+					return fantasy.ToolResponse{}, fmt.Errorf("error reading file: %w", err)
+				}
 			}
 
-			// Read the file content
-			content, lineCount, err := readTextFile(filePath, params.Offset, params.Limit)
-			isValidUt8 := utf8.ValidString(content)
-			if !isValidUt8 {
-				return fantasy.NewTextErrorResponse("File content is not valid UTF-8"), nil
-			}
-			if err != nil {
-				return fantasy.ToolResponse{}, fmt.Errorf("error reading file: %w", err)
+			// Only check UTF-8 for non-extracted documents
+			if !isExtractedDocument {
+				isValidUt8 := utf8.ValidString(content)
+				if !isValidUt8 {
+					return fantasy.NewTextErrorResponse("File content is not valid UTF-8"), nil
+				}
 			}
 
 			notifyLSPs(ctx, lspClients, filePath)

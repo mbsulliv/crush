@@ -15,8 +15,8 @@ import (
 	ignore "github.com/sabhiram/go-gitignore"
 )
 
-// commonIgnorePatterns contains commonly ignored files and directories
-var commonIgnorePatterns = sync.OnceValue(func() ignore.IgnoreParser {
+// commonIgnorePatternsCode contains commonly ignored files for code mode
+var commonIgnorePatternsCode = sync.OnceValue(func() ignore.IgnoreParser {
 	return ignore.CompileIgnoreLines(
 		// Version control
 		".git",
@@ -79,6 +79,76 @@ var commonIgnorePatterns = sync.OnceValue(func() ignore.IgnoreParser {
 		".share",
 	)
 })
+
+// commonIgnorePatternsResearch contains commonly ignored files for research mode
+var commonIgnorePatternsResearch = sync.OnceValue(func() ignore.IgnoreParser {
+	return ignore.CompileIgnoreLines(
+		// Version control
+		".git",
+		".svn",
+		".hg",
+		".bzr",
+
+		// IDE and editor files
+		".vscode",
+		".idea",
+		"*.swp",
+		"*.swo",
+		"*~",
+		".DS_Store",
+		"Thumbs.db",
+
+		// Build artifacts and dependencies
+		"node_modules",
+		"target",
+		"build",
+		"dist",
+		"out",
+		"bin",
+		"obj",
+		"*.o",
+		"*.so",
+		"*.dylib",
+		"*.dll",
+		"*.exe",
+
+		// Temporary files (but NOT logs)
+		"*.tmp",
+		"*.temp",
+		".cache",
+		".tmp",
+
+		// Language-specific build artifacts
+		"__pycache__",
+		"*.pyc",
+		"*.pyo",
+		".pytest_cache",
+		"vendor",
+
+		// OS generated files
+		".Trash",
+		".Spotlight-V100",
+		".fseventsd",
+
+		// Crush
+		".crush",
+
+		// macOS stuff
+		"OrbStack",
+		".local",
+		".share",
+	)
+})
+
+// commonIgnorePatterns returns the appropriate ignore patterns based on mode
+func commonIgnorePatterns() ignore.IgnoreParser {
+	// Check environment variable for mode
+	mode := os.Getenv("CRUSH_MODE")
+	if mode == "research" {
+		return commonIgnorePatternsResearch()
+	}
+	return commonIgnorePatternsCode()
+}
 
 var homeIgnore = sync.OnceValue(func() ignore.IgnoreParser {
 	home := home.Dir()

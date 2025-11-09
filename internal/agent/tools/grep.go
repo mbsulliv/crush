@@ -355,13 +355,35 @@ func fileContainsPattern(filePath string, pattern *regexp.Regexp) (bool, int, in
 		return false, 0, 0, "", nil
 	}
 
-	file, err := os.Open(filePath)
-	if err != nil {
-		return false, 0, 0, "", err
-	}
-	defer file.Close()
+	var scanner *bufio.Scanner
 
-	scanner := bufio.NewScanner(file)
+	// Check if it's a document that needs extraction
+	if isDocumentFile(filePath) {
+		readerFunc, err := getDocumentReader(filePath)
+		if err != nil {
+			// Can't read this document type, skip it
+			return false, 0, 0, "", nil
+		}
+
+		// Extract text from document
+		content, err := readerFunc(filePath)
+		if err != nil {
+			// Failed to extract, skip it
+			return false, 0, 0, "", nil
+		}
+
+		// Create scanner from extracted content
+		scanner = bufio.NewScanner(strings.NewReader(content))
+	} else {
+		// Regular text file
+		file, err := os.Open(filePath)
+		if err != nil {
+			return false, 0, 0, "", err
+		}
+		defer file.Close()
+		scanner = bufio.NewScanner(file)
+	}
+
 	lineNum := 0
 	for scanner.Scan() {
 		lineNum++
@@ -377,6 +399,11 @@ func fileContainsPattern(filePath string, pattern *regexp.Regexp) (bool, int, in
 
 // isTextFile checks if a file is a text file by examining its MIME type.
 func isTextFile(filePath string) bool {
+	// In research mode, also treat documents as searchable
+	if isDocumentFile(filePath) {
+		return true
+	}
+
 	file, err := os.Open(filePath)
 	if err != nil {
 		return false

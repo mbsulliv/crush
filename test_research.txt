@@ -1,0 +1,11 @@
+This is a test document for research mode.
+
+It contains multiple paragraphs to test text extraction.
+
+Key Features:
+- PDF support for academic papers
+- Word document support for reports
+- Text file support for notes and logs
+- Search functionality across all documents
+
+This demonstrates that Crush can now handle research documents effectively.
