@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/shell"
+	"github.com/mbsulliv/crush/internal/config"
+	"github.com/mbsulliv/crush/internal/permission"
+	"github.com/mbsulliv/crush/internal/shell"
 )
 
 type BashParams struct {

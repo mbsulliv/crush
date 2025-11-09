@@ -18,12 +18,12 @@ import (
 	"time"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/csync"
-	"github.com/charmbracelet/crush/internal/home"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/pubsub"
-	"github.com/charmbracelet/crush/internal/version"
+	"github.com/mbsulliv/crush/internal/config"
+	"github.com/mbsulliv/crush/internal/csync"
+	"github.com/mbsulliv/crush/internal/home"
+	"github.com/mbsulliv/crush/internal/permission"
+	"github.com/mbsulliv/crush/internal/pubsub"
+	"github.com/mbsulliv/crush/internal/version"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
