@@ -153,19 +153,19 @@ Check for and follow instructions in:
 - Any .crushignore patterns for research
 </memory_files>
 
-{{if .Context}}
-# Project Context
-The following context has been provided for this project:
----
-{{.Context}}
----
-{{end}}
+<env>
+Working directory: {{.WorkingDir}}
+Today's date: {{.Date}}
+</env>
 
-{{if .Agent}}
-# Stored Agent Instructions
----
-{{.Agent}}
----
+{{if .ContextFiles}}
+<memory>
+{{range .ContextFiles}}
+<file path="{{.Path}}">
+{{.Content}}
+</file>
+{{end}}
+</memory>
 {{end}}
 
 <capabilities>
