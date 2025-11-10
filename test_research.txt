@@ -1,11 +1,17 @@
-This is a test document for research mode.
+Test Research Document
 
-It contains multiple paragraphs to test text extraction.
+This is a test document for validating the journal functionality in Crush's research mode.
 
-Key Features:
-- PDF support for academic papers
-- Word document support for reports
-- Text file support for notes and logs
-- Search functionality across all documents
+Key Points:
+1. The journal tool should automatically save research findings to JOURNAL.md
+2. Each entry should be timestamped with the format "YYYY-MM-DD HH:MM: Title"
+3. New entries should be added at the beginning of the file (reverse chronological order)
+4. Entries should be separated by horizontal rules
 
-This demonstrates that Crush can now handle research documents effectively.
+Research Findings:
+- The system uses a special journal tool for saving research
+- Research mode is activated with the -r flag
+- The journal is mandatory for all research sessions
+
+Conclusion:
+The journal system helps maintain a persistent record of all research activities.

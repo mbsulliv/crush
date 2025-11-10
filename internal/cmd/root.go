@@ -32,10 +32,10 @@ func init() {
 	rootCmd.PersistentFlags().StringP("cwd", "c", "", "Current working directory")
 	rootCmd.PersistentFlags().StringP("data-dir", "D", "", "Custom crush data directory")
 	rootCmd.PersistentFlags().BoolP("debug", "d", false, "Debug")
+	rootCmd.PersistentFlags().BoolP("research", "r", false, "Enable research mode for working with documents and non-code files")
 
 	rootCmd.Flags().BoolP("help", "h", false, "Help")
 	rootCmd.Flags().BoolP("yolo", "y", false, "Automatically accept all permissions (dangerous mode)")
-	rootCmd.Flags().BoolP("research", "r", false, "Enable research mode for working with documents and non-code files")
 
 	rootCmd.AddCommand(
 		runCmd,

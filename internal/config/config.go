@@ -489,6 +489,7 @@ func allToolNames() []string {
 		"fetch",
 		"glob",
 		"grep",
+		"journal",
 		"ls",
 		"sourcegraph",
 		"view",
