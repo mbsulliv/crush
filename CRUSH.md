@@ -265,6 +265,7 @@ case msg SessionCreatedEvent:
 - **Configuration Loading**: `internal/config/load.go`
 - **File Filtering**: `internal/fsext/ls.go` (ignore patterns)
 - **Tool Permissions**: `internal/permission/service.go`
+- **Keymappings**: `internal/tui/keys.go` and component-specific `keys.go` files
 
 ### Naming Conventions
 - **Functions**: `CamelCase` for exported, `camelCase` for unexported
@@ -285,6 +286,122 @@ case msg SessionCreatedEvent:
 // Returns messages in chronological order.
 func (s *Service) GetSessionMessages(ctx context.Context, sessionID string) ([]Message, error) {
     // Implementation
+}
+```
+
+## Keymappings
+
+Crush keymappings are organized in a distributed pattern where each UI component maintains its own `keys.go` file. This allows component-specific shortcuts while maintaining global keybindings.
+
+### Global Keybindings
+
+**File**: `internal/tui/keys.go`
+
+Global shortcuts available throughout the TUI:
+
+```go
+type KeyMap struct {
+    Quit     key.Binding  // ctrl+c → Exit application
+    Help     key.Binding  // ctrl+g → Show help
+    Commands key.Binding  // ctrl+p → Open commands dialog
+    Suspend  key.Binding  // ctrl+z → Suspend application
+    Sessions key.Binding  // ctrl+s → Open sessions dialog
+}
+```
+
+| Shortcut | Action | File |
+|----------|--------|------|
+| `ctrl+c` | Quit | `internal/tui/keys.go` |
+| `ctrl+g` | Help | `internal/tui/keys.go` |
+| **`ctrl+p`** | **Commands** | `internal/tui/keys.go` |
+| `ctrl+z` | Suspend | `internal/tui/keys.go` |
+| `ctrl+s` | Sessions | `internal/tui/keys.go` |
+
+### Component-Specific Keybindings
+
+Each major UI component defines its own keybindings in a local `keys.go` file:
+
+**Chat Page** (`internal/tui/page/chat/keys.go`):
+- `ctrl+n` - New session
+- `ctrl+f` - Add attachment
+- `esc`/`alt+esc` - Cancel
+- `tab` - Change focus
+- `ctrl+d` - Toggle details
+
+**Chat Editor** (`internal/tui/components/chat/editor/keys.go`):
+- `/` - Add file
+- `enter` - Send message
+- `ctrl+o` - Open in external editor
+- `shift+enter`/`ctrl+j` - Insert newline
+
+**Completions** (`internal/tui/components/completions/keys.go`):
+- `ctrl+p` - Insert previous completion
+- `ctrl+n` - Insert next completion
+- `up`/`down` - Navigate completions
+- `enter` - Select completion
+- `esc` - Close completions
+
+**Dialog Components** (multiple files):
+- `Commands Dialog` (`internal/tui/components/dialogs/commands/keys.go`)
+- `Models Dialog` (`internal/tui/components/dialogs/models/keys.go`)
+- `Sessions Dialog` (`internal/tui/components/dialogs/sessions/keys.go`)
+- `Permissions Dialog` (`internal/tui/components/dialogs/permissions/keys.go`)
+
+### Adding or Modifying Keybindings
+
+**Pattern**: Each component uses the Charm `bubbles/key` package:
+
+```go
+// File: internal/tui/components/example/keys.go
+package example
+
+import "github.com/charmbracelet/bubbles/v2/key"
+
+type KeyMap struct {
+    MyAction key.Binding
+}
+
+func DefaultKeyMap() KeyMap {
+    return KeyMap{
+        MyAction: key.NewBinding(
+            key.WithKeys("ctrl+x"),           // Actual key(s)
+            key.WithHelp("ctrl+x", "action"), // Help text
+        ),
+    }
+}
+```
+
+**To add a new keybinding**:
+1. Identify the component: Is it global or component-specific?
+2. Add to the appropriate `keys.go` file
+3. Update the `KeyMap` struct with the new binding
+4. Use `key.WithKeys()` for the actual keys
+5. Use `key.WithHelp()` for display in help text
+6. Update the component's `Update()` method to handle the new key
+7. Test with `task run`
+
+### Keymapping Architecture
+
+Keybindings use the `github.com/charmbracelet/bubbles/v2/key` package:
+
+- Each `key.Binding` can have multiple trigger keys: `key.WithKeys("ctrl+p", "cmd+p")`
+- Help text is separate from the actual key: `key.WithHelp("ctrl+p", "commands")`
+- Components access keybindings via `key.Matches(msg, keymap.Action)`
+- Multiple keys can map to the same action
+
+**Example handling in Update method**:
+
+```go
+func (c *component) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    switch msg := msg.(type) {
+    case tea.KeyMsg:
+        switch {
+        case key.Matches(msg, c.keymap.MyAction):
+            // Handle action
+            return c, someCmd()
+        }
+    }
+    return c, nil
 }
 ```
 
