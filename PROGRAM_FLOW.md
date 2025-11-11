@@ -2,6 +2,192 @@
 
 This document traces the complete execution flow from startup to tool execution in Crush.
 
+## Directory Structure
+
+```
+crush/
+├── main.go                      # Entry point, .env loading, profiling setup
+├── go.mod / go.sum              # Go module dependencies
+├── Taskfile.yml                 # Task runner config (build, test, lint)
+├── .crush.json / crush.json     # Optional config (LSP, MCP, options)
+├── CLAUDE.md                    # AI development guidance
+├── PROGRAM_FLOW.md              # This file
+├── README.md                    # User-facing documentation
+│
+├── internal/                    # Private implementation (not importable externally)
+│   │
+│   ├── cmd/                     # CLI command definitions
+│   │   ├── root.go              # Root command, setupApp(), flag parsing
+│   │   ├── run.go               # Non-interactive run command
+│   │   ├── dirs.go              # Data directory management
+│   │   ├── logs.go              # Log viewing command
+│   │   ├── providers.go         # Provider management commands
+│   │   └── version.go           # Version information
+│   │
+│   ├── app/                     # Main application orchestration
+│   │   └── app.go               # App struct, service initialization, event setup
+│   │
+│   ├── agent/                   # Agent system (core AI orchestration)
+│   │   ├── coordinator.go       # Agent lifecycle, mode selection, tool building
+│   │   ├── agent.go             # SessionAgent, turn execution, streaming
+│   │   ├── prompts.go           # Prompt loader functions
+│   │   ├── templates/           # System prompt templates
+│   │   │   ├── coder.md.tpl     # Coder mode system prompt
+│   │   │   ├── research.md.tpl  # Research mode system prompt
+│   │   │   ├── task.md.tpl      # Task mode system prompt
+│   │   │   └── agent.md.tpl     # Meta-agent prompt (for agent tool)
+│   │   └── tools/               # Tool implementations
+│   │       ├── view.go          # Read files (with UTF-8 check)
+│   │       ├── edit.go          # Edit files with exact string replacement
+│   │       ├── multiedit.go     # Multi-file batch editing
+│   │       ├── write.go         # Create/overwrite files
+│   │       ├── bash.go          # Shell command execution
+│   │       ├── ls.go            # Directory listing
+│   │       ├── glob.go          # Pattern matching file search
+│   │       ├── grep.go          # Content search with ripgrep
+│   │       ├── journal.go       # Research journal entries (JOURNAL.md)
+│   │       ├── fetch.go         # HTTP requests
+│   │       ├── download.go      # File downloads
+│   │       ├── sourcegraph.go   # Code search integration
+│   │       ├── diagnostics.go   # LSP diagnostics
+│   │       ├── references.go    # LSP find references
+│   │       └── mcp.go           # MCP tool proxy
+│   │
+│   ├── config/                  # Configuration system
+│   │   ├── config.go            # Config struct, agent setup, tool names
+│   │   ├── load.go              # Config loading cascade (JSON → env → defaults)
+│   │   ├── load_test.go         # Configuration tests
+│   │   └── lsp.go               # LSP server configuration
+│   │
+│   ├── tui/                     # Terminal User Interface (Bubble Tea)
+│   │   ├── tui.go               # Main TUI model, Update(), View()
+│   │   ├── page/                # Pages (screens)
+│   │   │   ├── chat/            # Main chat interface
+│   │   │   ├── sessions/        # Session history view
+│   │   │   ├── files/           # File history view
+│   │   │   ├── config/          # Configuration editor
+│   │   │   └── providers/       # Provider setup wizard
+│   │   ├── dialog/              # Modal dialogs
+│   │   │   ├── permission.go    # Tool permission approval
+│   │   │   ├── modelpicker.go   # Model selection
+│   │   │   └── confirm.go       # Generic confirmation
+│   │   └── component/           # Reusable UI components
+│   │       ├── message.go       # Message rendering
+│   │       ├── statusbar.go     # Bottom status bar
+│   │       └── textarea.go      # Multi-line input
+│   │
+│   ├── session/                 # Session management service
+│   │   └── service.go           # CRUD operations, SQLite backed
+│   │
+│   ├── message/                 # Message persistence service
+│   │   └── service.go           # Store user/assistant messages, tool calls
+│   │
+│   ├── permission/              # Tool permission system
+│   │   └── service.go           # Async permission requests/approvals
+│   │
+│   ├── history/                 # File version history service
+│   │   └── service.go           # Track file changes, restore versions
+│   │
+│   ├── lsp/                     # Language Server Protocol integration
+│   │   ├── client.go            # LSP client wrapper (uses powernap)
+│   │   └── manager.go           # Multi-LSP management
+│   │
+│   ├── mcp/                     # Model Context Protocol integration
+│   │   ├── client.go            # MCP client implementation
+│   │   └── manager.go           # MCP server lifecycle
+│   │
+│   ├── db/                      # Database layer
+│   │   ├── connect.go           # SQLite connection setup
+│   │   ├── migrations/          # Goose migrations
+│   │   │   ├── 001_init.sql
+│   │   │   ├── 002_messages.sql
+│   │   │   ├── 003_files.sql
+│   │   │   ├── 004_tool_calls.sql
+│   │   │   └── 005_indexes.sql
+│   │   └── queries/             # SQL queries (if using sqlc)
+│   │
+│   ├── pubsub/                  # Event publishing system
+│   │   └── pubsub.go            # Generic pub/sub for service events
+│   │
+│   ├── fsext/                   # Filesystem utilities
+│   │   ├── ls.go                # Directory listing with ignore patterns
+│   │   ├── fileutil.go          # File operations, glob walking
+│   │   └── ignore.go            # .gitignore/.crushignore parsing
+│   │
+│   ├── filepathext/             # Path manipulation utilities
+│   │   └── filepath.go          # Smart path joining, resolution
+│   │
+│   ├── diff/                    # Diff generation
+│   │   └── diff.go              # Unified diff creation for file changes
+│   │
+│   ├── csync/                   # Concurrency utilities
+│   │   └── map.go               # Thread-safe map implementation
+│   │
+│   ├── event/                   # Application events
+│   │   └── event.go             # Event type definitions
+│   │
+│   └── [other utilities]/       # Additional helper packages
+│       ├── analytics/           # Usage analytics
+│       ├── clipboard/           # Clipboard operations
+│       ├── document/            # Document parsing (PDF, DOCX)
+│       ├── telemetry/           # Telemetry collection
+│       └── version/             # Version management
+│
+└── [generated/external]/        # Not in repo but important at runtime
+    └── ~/.crush/                # User data directory
+        ├── crush.db             # SQLite database
+        ├── crush.json           # User config
+        └── logs/                # Application logs
+```
+
+## Key Directory Purposes
+
+### `internal/agent/`
+**The brain of Crush.** Handles all AI interactions:
+- Coordinator selects mode (coder/research/task) → loads appropriate prompt template
+- SessionAgent executes turns, manages LLM streaming, handles tool calls
+- Tool implementations provide capabilities (file operations, shell, search, etc.)
+
+### `internal/config/`
+**Configuration cascade:** Loads from `.crush.json` → environment vars → defaults
+- Defines available tools, agents, LSP servers, MCP servers
+- Manages provider credentials (Anthropic, OpenAI, etc.)
+- Controls mode-specific behavior (research vs coder)
+
+### `internal/tui/`
+**User interface layer (Bubble Tea).** Completely decoupled from app logic via events:
+- Pages: Different screens (chat, sessions, files, config)
+- Dialogs: Modal interactions (permissions, model picker)
+- Updates in response to events published by services
+
+### `internal/app/`
+**Central orchestrator:** Wires everything together
+- Initializes all services (session, message, permission, history)
+- Sets up event routing (services → TUI)
+- Creates agent coordinator
+- Manages LSP client lifecycle
+
+### Services (`internal/session/`, `internal/message/`, etc.)
+**Persistence and state management:**
+- All backed by SQLite via `internal/db/`
+- Publish events for UI updates (via `internal/pubsub/`)
+- Provide CRUD operations for their domain
+
+### `internal/fsext/`
+**File filtering logic:** Where `.gitignore`, `.crushignore`, and common ignore patterns are enforced
+- Used by ls/glob tools to filter file listings
+- Different behavior in research mode (more lenient)
+
+### `internal/lsp/`
+**IDE-like features:** Diagnostics, go-to-definition, find-references
+- Integrates via `powernap` library
+- Supports multiple language servers (gopls, typescript-language-server, etc.)
+
+### `internal/mcp/`
+**External tool integration:** Model Context Protocol for extending capabilities
+- Allows adding custom tools/resources without modifying Crush
+- Configured in `.crush.json` under `mcp` section
+
 ## 1. Application Startup
 
 ```
